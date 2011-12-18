@@ -2,14 +2,18 @@ import java.io.File;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
+
 /**
  *
  * @author 14mRh4X0r
  */
 public class RemoteControl extends Plugin {
     public static final Logger log = Logger.getLogger("Minecraft");
-    public static final PropertiesFile props = new PropertiesFile("plugins"
-            + File.separator + "remotecontrol.settings");
+    public static final PropertiesFile props;
+    private static final boolean paranoid;
+    private static PluginRegisteredListener serverCommand;
+    private static PluginRegisteredListener playerCommand;
+    private static RemoteControl instance;
     public static final Handler handler = new RemoteControlHandler();
     private static PluginListener pl = new PluginListener(){
         @Override
@@ -27,7 +31,9 @@ public class RemoteControl extends Plugin {
             } else if (split[0].equalsIgnoreCase("/killclient")
                     && player.canUseCommand("/killclient")) {
                 for (Client c: RemoteControlServer.clients) {
-                    if (c.getName().equalsIgnoreCase(split[1])) {
+                    if (c.getName().equalsIgnoreCase(split[1])
+                            || c.getName()
+                                .equalsIgnoreCase("Client-" + split[1])) {
                         c.parse('q', null);
                         player.sendMessage(Colors.Gold + "Killed " + split[1]);
                         return true;
@@ -72,16 +78,27 @@ public class RemoteControl extends Plugin {
             return false;
         }
     };
-    private static PluginRegisteredListener serverCommand;
-    private static PluginRegisteredListener playerCommand;
     private static Runnable serverLoop = new Runnable(){
         public void run() {
             RemoteControlServer.serverLoop();
         }
     };
+    static {
+        File dir = new File("plugins" + File.separator + "RemoteControl");
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        props = new PropertiesFile("plugins" + File.separator + "RemoteControl"
+                + File.separator + "RemoteControl.properties");
+        paranoid = props.getBoolean("paranoid", false);
+    }
 
     public void enable() {
         log.addHandler(handler);
+        instance = this;
+        if (paranoid)
+            KeyUtils.loadOrGenerateKeys();
         RemoteControlServer.loop = true;
         new Thread(serverLoop, "RCServer").start();
         etc.getInstance().addCommand("/listclients",
@@ -109,6 +126,14 @@ public class RemoteControl extends Plugin {
         etc.getInstance().removeCommand("/killclient");
         etc.getLoader().removeListener(serverCommand);
         etc.getLoader().removeListener(playerCommand);
+    }
+
+    public static RemoteControl getInstance() {
+        return instance;
+    }
+
+    public static boolean isParanoid() {
+        return paranoid;
     }
 
 }
