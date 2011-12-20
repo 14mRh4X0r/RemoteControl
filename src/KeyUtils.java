@@ -1,13 +1,27 @@
+/*
+ * RemoteControl - A remote control plugin for CanaryMod
+ * Copyright (C) 2011 Willem Mulder (14mRh4X0r)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -18,13 +32,9 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import javax.xml.bind.DatatypeConverter;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
- * @author willem
+ * @author 14mRh4X0r
  */
 public class KeyUtils {
 
@@ -34,11 +44,11 @@ public class KeyUtils {
     static void loadOrGenerateKeys() {
         File keyDir = new File(RemoteControl.getInstance().getDirectory(),
                 "keys");
-
-        if (!keyDir.exists()) {
-            try {
+        
+        try {
+            if (!keyDir.exists()) {
                 keyDir.mkdirs();
-                RemoteControl.log.info("[RemoteControl] Generating keypair.");
+                RemoteControl.log.info("[RemoteControl] Generating keypair...");
                 KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
                 RSAKeyGenParameterSpec spec = new RSAKeyGenParameterSpec(2048,
                         RSAKeyGenParameterSpec.F4);
@@ -64,16 +74,7 @@ public class KeyUtils {
                 out.write(DatatypeConverter.printBase64Binary(
                         privateSpec.getEncoded()).getBytes());
                 out.close();
-            } catch (InvalidAlgorithmParameterException ex) {
-                RemoteControl.log.log(Level.SEVERE, null, ex);
-            } catch (NoSuchAlgorithmException ex) {
-                RemoteControl.log.log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                RemoteControl.log.log(Level.SEVERE, null, ex);
             }
-        }
-        try {
-            // Following code was borrowed from Vex Software LLC
             // Read the public key file.
             File publicKeyFile = new File(keyDir, "id_rsa.pub");
             FileInputStream in = new FileInputStream(publicKeyFile);
